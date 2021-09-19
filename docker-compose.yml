@@ -1,0 +1,13 @@
+services:
+        countdown:
+                container_name: countdown
+                build: .
+                ports:
+                        - "8080:8080"
+                volumes:
+                        - type: bind
+                          source: ./src
+                          target: /usr/src/app/src
+                        - type: bind
+                          source: ./server.js
+                          target: /usr/src/app/server.js

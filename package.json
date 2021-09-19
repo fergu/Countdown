@@ -1,0 +1,17 @@
+{
+  "name": "countdown",
+  "version": "0.1.0",
+  "description": "A simple countdown timer that uses a toml file for dates and times",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http": "^0.0.1-security",
+    "toml": "^3.0.0"
+  }
+}
