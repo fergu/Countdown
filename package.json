@@ -4,7 +4,8 @@
   "description": "A simple countdown timer that uses a toml file for dates and times",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+	"coverage": "jest --coverage",
     "start": "node server.js"
   },
   "author": "",
@@ -13,5 +14,19 @@
     "express": "^4.17.1",
     "http": "^0.0.1-security",
     "toml": "^3.0.0"
+  },
+  "devDependencies": {
+    "jest": "^27.3.1"
+  },
+  "jest": {
+    "moduleDirectories": [
+		"node_modules",
+		"<rootDir>"
+	],
+	"globals": {
+		"good_schedule_path": "__tests__/test_schedules/good_schedule.toml",
+		"overlap_schedule_path": "__tests__/test_schedules/overlap_schedule.toml",
+		"nonexistent_schedule_path": "__tests__/test_schedules/does_not_exist.toml"
+	}
   }
 }

@@ -6,16 +6,25 @@
 # Date strings should be in ISO format, I.E 1 PM on November 19th in AZ time is
 # November 19 2021 13:00:00 GMT-0700
 
-test_value = 10
 talk_length = 600 # 600 seconds/10 minutes
+qa_length   = 120 # 2 minutes
+transition_length = 60 # 1 minute
+time_zone = "America/Phoenix"
+
+[session.D]
+
+number_talks = 10
+start_time = "October 27 2021 19:00:00 GMT-0700"
+name "I have an error"
 
 [session.A]
 
 number_talks = 5
 start_time = "November 19 2021 13:00:00 GMT-0700"
-talk_length = 600
 name = "A"
 
 [session.B]
 
-start_time = ""
+number_talks = 6
+start_time = "November 19 2021 15:00:00 GMT-0700"
+name = "B"

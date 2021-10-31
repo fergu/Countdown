@@ -1,23 +1,41 @@
 <html>
 	<title>Countdown</title>
 	<head>
-		<link href='https://fonts.googleapis.com/css?family=Raleway+Dots|Raleway:100,200,300,400,500,600' rel='stylesheet' type='text/css'>
 		<link href='./css/main.css' rel='stylesheet' type='text/css'>
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+		<script src="js/main.js" type='text/javascript'></script>
 	</head>
-	<body>
+	<body onload="initialize()">
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-	<div id='Background'>
-		--:--
+	<div id='session-info-container'>
+		<div id='session-info-title'>Title</div>
+		<div id='session-info-subtitle'>Subtitle</div>
 	</div>
-
-	<div id='Footer'>
-		Copyright Kevin Ferguson, 2018. All Rights Reserved.
+	<div id='timer'>
+		<div id='days-time-container' class='time-container'>
+			<div class='time-box' id='days'>00</div><br>
+			<div class='time-text'>days</div>
+		</div>
+		<div id='hours-time-container' class='time-container'>
+			<div class='time-box' id='hours'>00</div><br>
+			<div class='time-text'>hours</div>
+		</div>
+		<div id='minutes-time-container' class='time-container'>
+			<div class='time-box' id='minutes'>00</div><br>
+			<div class='time-text'>minutes</div>
+		</div>
+		<div id='seconds-time-container' class='time-container'>
+			<div class='time-box' id='seconds'>00</div><br>
+			<div class='time-text'>seconds</div>
+		</div>
 	</div>
-
-	<script src="js/main.js" type='text/javascript'></script>
+	<center>
+		<canvas id="progressCanvas" width=200 height="200"></canvas>
+	</center>
+	<br>
+	<div id="session-status" class='session-info'>
+		Session Information Appears Here
+	</div>
 
 	</body>
 </html>

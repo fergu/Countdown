@@ -11,11 +11,11 @@ qa_length   = 120 # 2 minutes
 transition_length = 60 # 1 minute
 time_zone = "America/Phoenix"
 
-[session.D]
+[session.C]
 
 number_talks = 10
 start_time = "October 27 2021 19:00:00 GMT-0700"
-name = "Test"
+name = "C"
 
 [session.A]
 
@@ -28,3 +28,9 @@ name = "A"
 number_talks = 6
 start_time = "November 19 2021 15:00:00 GMT-0700"
 name = "B"
+
+[session.D]
+number_talks = 1
+start_time = "October 31 2021 12:00:00 GMT-0700"
+name = "D"
+talk_length = 1200 # 20 minutes instead of 10. This lets us verify that we can overwrite the default value

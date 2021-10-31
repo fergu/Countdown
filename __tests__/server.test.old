@@ -1,0 +1,14 @@
+const server = require("./server")
+
+filename = process.argv[process.argv.length - 1]
+
+describe("Express Application", () => {
+	test("Successfully launches the server", () => {
+	
+	});
+	
+	test("Server responds to the /session endpoint", () => {
+	
+	});
+
+}

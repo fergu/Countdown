@@ -1,79 +1,77 @@
 // server.js
-function pad(str, max) {
-  str = str.toString();
-  return str.length < max ? pad("0" + str, max) : str;
-}
-
-function iterate_dictionary() {
-
-}
-
-class aps_session {
-	constructor(session_data) {
-		this.start_time = new Date(session_data["start_time"])
-		this.number_talks = session_data["number_talks"]
-		this.talk_length = session_data["talk_length"]
-		this.session_name = session_data["name"]
-	}
-
-	toString() {
-		return "APS Session " + this.session_name + " starting at " + this.start_time
-	}
-
-}
-
 const express = require('express');
 const path = require('path');
 const fs = require('fs')
 const toml = require('toml')
 
-//list = require('./request.js');
+const schedule = require("schedule")
 
-const offset = (new Date()).getTimezoneOffset()
 //Create an app
 const app = express();
 app.use(express.static(__dirname + '/src'));
 
-schedule_data = fs.readFileSync(__dirname + '/src/schedule.toml')
-try {
-	schedule_toml = toml.parse(schedule_data)
-} catch (e) {
-	console.error("Parsing error on line " + e.line + ", column " + e.column + ": " + e.message);
-}
-
-console.log("=== SCHEDULE PARSING COMPLETE ===")
-const aps_session_defaults = schedule_toml["session"]["defaults"]
-console.log(aps_session_defaults)
-
-console.log("=== Individual sessions")
-for (var [session_key, session] of Object.entries(schedule_toml["session"])) {
-	if (session_key == "defaults") { continue }
-
-	session["name"] = session_key
-	for (const [defaults_key, default_value] of Object.entries(aps_session_defaults)) {
-		if (!Object.keys(session).includes(defaults_key)) {
-			session[defaults_key] = default_value
+function get_most_recent_session_index(sessions) {
+	now = new Date().getTime()
+	currentIndex = -1
+	for (var i = 0; i < sessions.length; i++) {
+		session = sessions[i]
+		if (now > session["start_date"].getTime()) {
+			currentIndex = i
 		}
 	}
-	new_session = new aps_session(session)
-	console.log(new_session.toString())
+	return currentIndex;
+}
+exports.get_most_recent_session_index = get_most_recent_session_index
+
+function print_session_data(sessions) {
+	process.stdout.write("========================== SORTED SESSION LIST ===========================\n")
+	process.stdout.write("== (You probably want to be sure these are listed in the correct order) ==\n")
+	process.stdout.write("==========================================================================\n")
+	for (const session of sessions) {
+		session_str = ""
+		session_str += `Session ${session["name"]}\n`
+		session_str += `\t${session["number_talks"]} talks comprising:\n`
+		session_str += `\t\t${session["talk_length"]/60}\tminute talk\n`
+		session_str += `\t\t${session["qa_length"]/60}\tminute Q/A\n`
+		session_str += `\t\t${session["transition_length"]/60}\tminute transition\n`
+		session_str += `\t\t==============\n`
+		session_str += `\t\t${session["time_per_talk"]/(1000*60)}\tminutes/talk\n`
+		session_str += `\tSession Length:\t${session["time_per_talk"]*session["number_talks"]/(1000*60)} minutes\n`
+		session_str += `\tSession Start :\t${session["start_date"]}\n`
+		session_str += `\tSession End   :\t${session["end_date"]}\n\n`
+		process.stdout.write(session_str)
+	}
 }
 
-app.get('/time', function (req, res) {
-	endDate = new Date(2021, 10, 25, 12, 00, 00, 00)
-	//now = new Date()
-	//dDate = endDate - now
-	//var hours = Math.floor(dDate % (1000*60*60*24)/(1000 * 60 * 60))
-	//var minutes = Math.floor(dDate % (1000*60*60)/(1000 * 60))
-	//var seconds = Math.floor(dDate % (1000 * 60)/(1000))
+sessions = schedule.construct_session_data_from_file(process.env.SCHEDULE_FILE)
+// Now create a list of the sessions, sorted such that they're in consecutive order
+sessions.sort((a, b) => a["start_date"].getTime() - b["start_date"].getTime())
 
-	//var paddedHrs  = pad(hours, 2)
-	//var paddedMins = pad(minutes,2)
-	//var paddedSecs = pad(seconds,2)
-	//retString = paddedHrs + ":" + paddedMins + ":" + paddedSecs
-	res.send(endDate.toUTCString())	
+print_session_data(sessions)
+
+const schedule_is_sane = schedule.check_if_schedule_is_sane(sessions)
+
+/*************/
+/* ENDPOINTS */
+/*************/
+app.get('/session', function (req, res) {
+	current_index = get_most_recent_session_index(sessions)
+	now = new Date()
+	current_session = {}
+	next_session = {}
+	if (current_index == -1) { // If we're before any session has started
+		current_session = {}
+		next_session = sessions[0]
+	} else if (now.getTime() > (new Date(sessions[current_index]["end_date"])).getTime()) { // If the most recently started session has already ended
+		current_session = {}
+		next_session = sessions[current_index + 1]
+	} else { // FIXME: Need to add another if-statement to catch the case where current_index is the last session (in which case "next" should be {})
+		current_session = sessions[current_index]
+		next_session = sessions[current_index + 1]
+	}
+	res.send({"current": current_session, "next" : next_session})
 });
 
 const PORT = 8080;
 app.listen(PORT);
-console.log(`Running on port ${PORT}`);
+process.stdout.write(`Running on port ${PORT}\n`);

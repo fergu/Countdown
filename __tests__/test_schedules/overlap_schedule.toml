@@ -1,0 +1,24 @@
+[session.defaults]
+# These are the default settings for all sessions, but can be overridden on a per-session basis below
+
+# NOTES:
+# Times are in seconds. I.E - a 10 minute talk is 10 mins * 60 sec/min = 600 sec
+# Date strings should be in ISO format, I.E 1 PM on November 19th in AZ time is
+# November 19 2021 13:00:00 GMT-0700
+
+talk_length = 600 # 600 seconds/10 minutes
+qa_length   = 120 # 2 minutes
+transition_length = 60 # 1 minute
+time_zone = "America/Phoenix"
+
+[session.B]
+
+number_talks = 10
+start_time = "October 27 2021 19:01:00 GMT-0700"
+name = "Overlapping Session"
+
+[session.A]
+
+number_talks = 10
+start_time = "October 27 2021 19:00:00 GMT-0700"
+name = "First Session"
