@@ -66,6 +66,41 @@ function drawPartialCircle(ctx, cx, cy, r, pct) {
 	ctx.stroke();
 }
 
+function deltaTimeToComponents(time_in_ms) {
+	const days = Math.floor(time_in_ms / (1000 * 60 * 60 * 24))
+	const hours = Math.floor(time_in_ms % (1000*60*60*24)/(1000*60*60))
+	const minutes = Math.floor(time_in_ms % (1000*60*60)/(1000*60));
+	const seconds = Math.floor(time_in_ms % (1000*60)/1000);
+	return { days:days, hours:hours, minutes:minutes, seconds:seconds }
+}
+
+function getTalkNumber(time_remaining_in_ms, sessionData) {
+	return Math.floor((time_remaining_in_ms / 1000) / sessionData["time_per_talk"]) + 1
+}
+
+function getTalkState(time_remaining_in_ms, sessionData) {
+	const time_remaining_in_secs = time_remaining_in_ms / 1000
+	// Calculate the time remaining when we go from transition -> talk
+	const transition_to_talk = sessionData["time_per_talk"] - sessionData["transition_length"]
+	// Calculate the time remaining when we go from talk -> qa
+	const transition_to_qa = transition_to_talk - sessionData["talk_length"]
+
+	var sessionState;
+	if (time_remaining_in_secs >= transition_to_talk) { // We're in the transition period
+		sessionState = "Transitioning to next talk"
+	} else if (time_remaining_in_secs >= transition_to_qa) { // We're in the talk period
+		sessionState = "Talk in progress"
+	} else { // We're in the QA period
+		sessionState = "Question/Answer period"
+	}
+
+	return sessionState
+}
+
+function getStyleParametersForState(talk_state) {
+
+}
+
 function render_current_session(sessionData) {
 	document.getElementById('days-time-container').style.display = "none"
 	document.getElementById('hours-time-container').style.display = "none"
@@ -75,9 +110,11 @@ function render_current_session(sessionData) {
 	const nextSession = sessionData["next"]
 	var startDate = new Date(currentSession["start_date"])
 	var endDate = new Date(currentSession["end_date"])
-	var talk_number = Math.floor(((now.getTime() - startDate.getTime()) / 1000) / currentSession["time_per_talk"]) + 1
+	var talk_number = getTalkNumber(now.getTime() - startDate.getTime(), sessionData)
 	// dt = the time left in this talk in milliseconds
 	var dt = startDate.getTime() + talk_number * currentSession["time_per_talk"]*1000 - now.getTime();
+	sessionState = getTalkState(dt, sessionData)
+
 	// FIXME: Need to change this to calculate time left in the current talk as a function of "part" of the talk (I.E talk, questions, transition)
 	transition_period 	= Math.floor(Math.max(dt/1000 - currentSession["talk_length"] - currentSession["qa_length"], 0))
 	talk_period			= Math.floor(Math.max(dt/1000 - currentSession["qa_length"], 0))
@@ -90,7 +127,6 @@ function render_current_session(sessionData) {
 	if (transition_period > 0) { // This would be the transition period
 		backgroundColor = "#000000"
 		foregroundColor = "#FFFFFF"
-		console.log(transition_period)
 		minutes = Math.floor(transition_period % (60*60) / (60))
 		seconds = Math.floor(transition_period % (60) )
 		document.getElementById("session-status").innerHTML = "Transitioning to next talk"
@@ -162,15 +198,12 @@ function render_between_session(sessionData) {
 	var endDate = new Date(nextSession["end_date"])
 
 	var dt = endDate.getTime() - now.getTime();
-	var days = Math.floor(dt / (1000*60*60*24))
-	var hours = Math.floor(dt % (1000*60*60*24)/(1000*60*60))
-	var minutes = Math.floor(dt % (1000*60*60)/(1000*60));
-	var seconds = Math.floor(dt % (1000*60)/1000);
+	const dt_components = deltaTimeToComponents(endDate.getTime() - now.getTime())
 
-	var paddedDays = days.toString();
-	var paddedHours =  pad(hours, 2)
-	var paddedMinutes = pad(minutes,2)
-	var paddedSeconds = pad(seconds,2)
+	var paddedDays = dt_components["days"].toString();
+	var paddedHours =  pad(dt_components["hours"], 2)
+	var paddedMinutes = pad(dt_components["minutes"], 2)
+	var paddedSeconds = pad(dt_components["seconds"], 2)
 	document.getElementById('days').innerHTML = paddedDays
 	document.getElementById('hours').innerHTML = paddedHours
 	document.getElementById('minutes').innerHTML = paddedMinutes
