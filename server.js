@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs')
 const toml = require('toml')
 
-const schedule = require("schedule")
+const schedule = require("./schedule")
 
 //Create an app
 const app = express();
@@ -35,8 +35,8 @@ function print_session_data(sessions) {
 		session_str += `\t\t${session["qa_length"]/60}\tminute Q/A\n`
 		session_str += `\t\t${session["transition_length"]/60}\tminute transition\n`
 		session_str += `\t\t==============\n`
-		session_str += `\t\t${session["time_per_talk"]/(1000*60)}\tminutes/talk\n`
-		session_str += `\tSession Length:\t${session["time_per_talk"]*session["number_talks"]/(1000*60)} minutes\n`
+		session_str += `\t\t${session["time_per_talk"]/(60)}\tminutes/talk\n`
+		session_str += `\tSession Length:\t${session["time_per_talk"]*session["number_talks"]/(60)} minutes\n`
 		session_str += `\tSession Start :\t${session["start_date"]}\n`
 		session_str += `\tSession End   :\t${session["end_date"]}\n\n`
 		process.stdout.write(session_str)
@@ -44,12 +44,8 @@ function print_session_data(sessions) {
 }
 
 sessions = schedule.construct_session_data_from_file(process.env.SCHEDULE_FILE)
-// Now create a list of the sessions, sorted such that they're in consecutive order
-sessions.sort((a, b) => a["start_date"].getTime() - b["start_date"].getTime())
 
 print_session_data(sessions)
-
-const schedule_is_sane = schedule.check_if_schedule_is_sane(sessions)
 
 /*************/
 /* ENDPOINTS */
@@ -69,7 +65,7 @@ app.get('/session', function (req, res) {
 		current_session = sessions[current_index]
 		next_session = sessions[current_index + 1]
 	}
-	res.send({"current": current_session, "next" : next_session})
+	res.send({"current": current_session, "next" : next_session, "server-time" : now.getTime()})
 });
 
 const PORT = 8080;

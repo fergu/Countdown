@@ -14,7 +14,8 @@ describe("Check that a good schedule can be correctly loaded", () => {
 	});
 
 	test("Verify that schedule passes sanity checks", () => {
-		expect(schedule.check_if_schedule_is_sane(global.good_schedule_path)).toBe(true);
+		sessionData = schedule.construct_session_data_from_file(global.good_schedule_path)
+		expect(schedule.check_if_schedule_is_sane(sessionData)).toBe(true);
 	});
 })
 
@@ -29,10 +30,6 @@ describe("Check that a non-existant schedule fails", () => {
 	
 	test("Fail to construct session data for non-existent file", () => {
 		expect( () => { schedule.construct_session_data_from_file(global.nonexistent_schedule_path) } ).toThrow();
-	});
-
-	test("Fail sanity check for non-existent file", () => {
-		expect( () => { schedule.check_if_schedule_is_sane(global.nonexistent_schedule_path) } ).toThrow();
 	});
 })
 
@@ -50,7 +47,8 @@ describe("Check that a schedule with a session overlap fails", () => {
 	});
 
 	test("Fail sanity check", () => {
-		expect( schedule.check_if_schedule_is_sane(global.overlap_schedule_path) ).toBe(false);
+		sessionData = schedule.construct_session_data_from_file(global.overlap_schedule_path)
+		expect( schedule.check_if_schedule_is_sane(sessionData) ).toBe(false);
 	});
 })
 
@@ -73,6 +71,7 @@ describe("Verify that the user-supplied schedule can be loaded", () => {
 	});
 
 	test("Ensure Schedule passes sanity checks", () => {
-		expect(schedule.check_if_schedule_is_sane(process.env.SCHEDULE_FILE)).toBe(true);
+		sessionData = schedule.construct_session_data_from_file(process.env.SCHEDULE_FILE)
+		expect(schedule.check_if_schedule_is_sane(sessionData)).toBe(true);
 	});
 })

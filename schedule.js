@@ -30,7 +30,6 @@ function construct_session_data_from_file(filename) {
 	for (var [session_key, session] of Object.entries(schedule_toml["session"])) {
 		if (session_key == "defaults") { continue }
 	
-		console.log(schedule_defaults)
 		new_session = Object.assign({}, schedule_defaults)
 		new_session = Object.assign(new_session, session)
 	
@@ -41,27 +40,32 @@ function construct_session_data_from_file(filename) {
 		new_session["end_time"] = new_session["end_date"].toString()
 		sessions[sessions.length] = new_session
 	}
+	sessions = get_sorted_sessions(sessions)
 	return sessions
 }
 exports.construct_session_data_from_file = construct_session_data_from_file
 
-function get_sorted_sessions(filename) {
-	sessions = construct_session_data_from_file(filename)
+function get_sorted_sessions(sessions) {
+	//sessions = construct_session_data_from_file(filename)
 	sessions.sort((a, b) => a["start_date"].getTime() - b["start_date"].getTime())
 	return sessions
 }
 
-function check_if_schedule_is_sane(filename) {
-	sessions = get_sorted_sessions(filename)
-	let schedule_is_sane = true
-	for (i = 1; i < sessions.length; i++  ) {
-		this_session = sessions[i]
-		last_session = sessions[i-1]
-		if (this_session["start_date"].getTime() < last_session["end_date"].getTime()) {
-			schedule_is_sane = false
+function check_if_schedule_is_sane(sessions) {
+	test_sessions = get_sorted_sessions(sessions)
+	try {
+		let schedule_is_sane = true
+		for (i = 1; i < test_sessions.length; i++  ) {
+			this_session = test_sessions[i]
+			last_session = test_sessions[i-1]
+			if (this_session["start_date"].getTime() < last_session["end_date"].getTime()) {
+				schedule_is_sane = false
+			}
 		}
+		return schedule_is_sane
+	} catch(e) {
+		return false
 	}
-	return schedule_is_sane
 }
 exports.check_if_schedule_is_sane = check_if_schedule_is_sane
 

@@ -73,6 +73,8 @@ function deltaTimeToComponents(time_in_ms) {
 	const seconds = Math.floor(time_in_ms % (1000*60)/1000);
 	return { days:days, hours:hours, minutes:minutes, seconds:seconds }
 }
+// FIXME: This throws an error in the browser console, but we need it to be able to run any tests. What's the workaround?
+exports.deltaTimeToComponents = deltaTimeToComponents
 
 function getTalkNumber(time_remaining_in_ms, sessionData) {
 	return Math.floor((time_remaining_in_ms / 1000) / sessionData["time_per_talk"]) + 1
@@ -195,7 +197,7 @@ function render_between_session(sessionData) {
 	const currentSession = sessionData["current"]
 	const nextSession = sessionData["next"]
 	var startDate = new Date(nextSession["start_date"])
-	var endDate = new Date(nextSession["end_date"])
+	var endDate = new Date(nextSession["start_date"])
 
 	var dt = endDate.getTime() - now.getTime();
 	const dt_components = deltaTimeToComponents(endDate.getTime() - now.getTime())
@@ -211,7 +213,8 @@ function render_between_session(sessionData) {
 
 	document.getElementById('session-info-title').innerHTML = "Next Session: " + nextSession["name"]
 	document.getElementById('session-info-subtitle').innerHTML = "Next Session Begins in:" // Want to use a single space just to make sure it is always full height
-
+	const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: sessionData['current']['timeZone'], timeZoneName: 'short', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+	document.getElementById('session-status').innerHTML = (new Date(sessionData["next"]["start_date"])).toLocaleDateString('en-US', options)
 	// Now set some page style info
 	document.body.style.backgroundColor = "black";
 	document.body.style.color			= "white";
@@ -240,6 +243,9 @@ function render_between_session(sessionData) {
 }
 
 function render_page(sessionData) {
+	const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: sessionData['current']['timeZone'], timeZoneName: 'short', hour: 'numeric', minute: 'numeric', second: 'numeric'};
+	document.getElementById('current-time-container').innerHTML = new Date().toLocaleDateString('en-US', options)
+
 	if (sessionData["SessionState"] == SessionState.IN_SESSION) {
 		render_current_session(sessionData)
 	} else if (sessionData["SessionState"] == SessionState.BETWEEN_SESSION) {
@@ -247,4 +253,3 @@ function render_page(sessionData) {
 	}
 }
 
-//const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: currentSession['timeZone'], timeZoneName: 'short', hour: 'numeric', minute: 'numeric' };

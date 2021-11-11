@@ -3,8 +3,7 @@ services:
                 container_name: countdown
                 build: .
                 environment:
-                        - SCHEDULE_FILE="./schedule.toml"
-                        - TZ="America/Phoenix"
+                        - SCHEDULE_FILE=./schedules/schedule.toml
                 ports:
                         - "8080:8080"
                 volumes:
@@ -15,5 +14,8 @@ services:
                           source: ./server.js
                           target: /usr/src/app/server.js
                         - type: bind
-                          source: ./schedule.toml
-                          target: /usr/src/app/schedule.toml
+                          source: ./schedule.js
+                          target: /usr/src/app/schedule.js
+                        - type: bind
+                          source: ./schedules
+                          target: /usr/src/app/schedules
