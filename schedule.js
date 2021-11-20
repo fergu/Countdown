@@ -3,6 +3,39 @@ const path = require('path');
 const fs = require('fs')
 const toml = require('toml')
 
+class Session {
+	constructor(session_data) {
+		this.name = session_data["name"]
+		this.start_time = session_data["start_time"]
+		this.end_time = session_data["end_time"]
+		this.time_per_talk = session_data["time_per_talk"]
+		this.number_of_talks = session_data["number_of_talks"]
+		this.talk_length = session_data["talk_length"]
+		this.warn_length = session_data["warn_length"]
+		this.qa_length = session_data["qa_length"]
+		this.transition_length = session_data["transition_length"]
+		this.session_data = session_data
+		this.talks = []
+	}
+}
+
+class Intermission {
+	constructor(start_time, end_time) {
+		this.start_time = start_time
+		this.end_time = end_time
+	}
+}
+
+class Talk {
+	constructor(parent_session, start_time) {
+		this.start_time = start_time
+		this.talk_time = this.start_time + parent_session.transition_length
+		this.warn_time = this.talk_time + (parent_session.talk_length - parent_session.warn_length)
+		this.qa_time = this.warn_time + parent_session.warn_length
+		this.end_time = this.qa_time + parent_session.qa_length
+	}
+}
+
 function load_schedule_file(filename) {
 	try {
 		filedata = fs.readFileSync(path.join(__dirname, filename))
@@ -35,10 +68,12 @@ function construct_session_data_from_file(filename) {
 		new_session = Object.assign(new_session, session)
 	
 		// Calculate some extra parameters
-		new_session["start_date"] = new Date(new_session["start_time"])
+		new_session["start_date"] = new Date(new_session["start"])
+		new_session["start_time"] = new_session["start_date"].getTime()
 		new_session["time_per_talk"] = new_session["talk_length"] + new_session["qa_length"] + new_session["transition_length"]
-		new_session["end_date"] = new Date(new_session["start_date"].getTime() + new_session["number_talks"] * new_session["time_per_talk"] * 1000.0 )
-		new_session["end_time"] = new_session["end_date"].toString()
+		new_session["end_date"] = new Date(new_session["start_time"] + new_session["number_of_talks"] * new_session["time_per_talk"] * 1000.0 )
+		new_session["end_time"] = new_session["end_date"].getTime()
+		new_session["end"] = new_session["end_date"].toString()
 		sessions[sessions.length] = new_session
 	}
 	sessions = get_sorted_sessions(sessions)
@@ -83,26 +118,23 @@ function build_full_schedule_from_sessions(sessions) {
 	sessions = get_sorted_sessions(sessions)
 	full_schedule = []
 	for (i = 0; i < sessions.length; i++) {
-		this_session = sessions[i]
-		this_talk_length = this_session["time_per_talk"]
-		for (j = 0; j < this_session["number_talks"]; j++) {
-			this_start = this_session["start_date"].getTime() + this_talk_length * j * 1000
-			this_end = this_session["start_date"].getTime() + this_talk_length * (j+1) * 1000
-			full_schedule[full_schedule.length] = {
-				"start_time": new Date(this_start),
-				"end_time": new Date(this_end),
-				"type": "talk"
-			}
+		full_session_talks = []
+		this_session = new Session(sessions[i])
+		this_talk_length = this_session.time_per_talk
+		this_number_talks = this_session.number_of_talks
+		for (j = 0; j < this_number_talks; j++) {
+			this_start = this_session.start_time + this_talk_length * j * 1000
+			this_talk = new Talk(this_session, this_start)
+			full_session_talks[full_session_talks.length] = this_talk
 		}
+		this_session.talks = full_session_talks
+		full_schedule[full_schedule.length] = {"session": this_session, "type": "talk"}
 		// Now add an entry to fill the "gap" between the end of this session and the start of the next
 		if (i < sessions.length - 1) {
-			intermediate_start = this_session["end_date"].getTime()
-			intermediate_end =	sessions[i+1]["start_date"].getTime()
-			full_schedule[full_schedule.length] = {
-				"start_time": new Date(intermediate_start),
-				"end_time": new Date(intermediate_end),
-				"type": "intermediate"
-			}
+			intermediate_start = sessions[i]["end_time"]
+			intermediate_end =	sessions[i+1]["start_time"]
+			this_intermission = new Intermission(intermediate_start, intermediate_end)
+			full_schedule[full_schedule.length] = {"session:": this_intermission, "type": "intermission"}
 		}
 	}
 	return full_schedule
