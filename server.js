@@ -44,7 +44,10 @@ function print_session_data(sessions) {
 }
 
 sessions = schedule.construct_session_data_from_file(process.env.SCHEDULE_FILE)
-
+full_schedule = schedule.build_full_schedule_from_sessions(sessions)
+for (i = 0; i < full_schedule.length; i++) {
+	console.log(full_schedule[i])
+}
 print_session_data(sessions)
 
 /*************/
