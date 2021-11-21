@@ -11,7 +11,7 @@ class Session {
 		this.time_per_talk = session_data["time_per_talk"]
 		this.number_of_talks = session_data["number_of_talks"]
 		this.talk_length = session_data["talk_length"]
-		this.warn_length = session_data["warn_length"]
+		this.warning_length = session_data["warning_length"]
 		this.qa_length = session_data["qa_length"]
 		this.transition_length = session_data["transition_length"]
 		this.session_data = session_data
@@ -29,10 +29,10 @@ class Intermission {
 class Talk {
 	constructor(parent_session, start_time) {
 		this.start_time = start_time
-		this.talk_time = this.start_time + parent_session.transition_length
-		this.warn_time = this.talk_time + (parent_session.talk_length - parent_session.warn_length)
-		this.qa_time = this.warn_time + parent_session.warn_length
-		this.end_time = this.qa_time + parent_session.qa_length
+		this.talk_time = this.start_time + parent_session.transition_length * 1000
+		this.warn_time = this.talk_time + (parent_session.talk_length - parent_session.warning_length) * 1000
+		this.qa_time = this.warn_time + parent_session.warning_length * 1000
+		this.end_time = this.qa_time + parent_session.qa_length * 1000
 	}
 }
 
@@ -128,13 +128,13 @@ function build_full_schedule_from_sessions(sessions) {
 			full_session_talks[full_session_talks.length] = this_talk
 		}
 		this_session.talks = full_session_talks
-		full_schedule[full_schedule.length] = {"session": this_session, "type": "talk"}
+		full_schedule[full_schedule.length] = {"session": this_session, "type": "session"}
 		// Now add an entry to fill the "gap" between the end of this session and the start of the next
 		if (i < sessions.length - 1) {
 			intermediate_start = sessions[i]["end_time"]
 			intermediate_end =	sessions[i+1]["start_time"]
 			this_intermission = new Intermission(intermediate_start, intermediate_end)
-			full_schedule[full_schedule.length] = {"session:": this_intermission, "type": "intermission"}
+			full_schedule[full_schedule.length] = {"session": this_intermission, "type": "intermission"}
 		}
 	}
 	return full_schedule
